@@ -37,7 +37,8 @@ class User(Base):
     implication = Column(String(50))
     password_hash = Column(String(255))  # Stockage sécurisé du mot de passe
     is_admin = Column(Boolean, default=False)  # Définit si l'utilisateur est admin
-    conduite = Column(Integer)
+    conduite = Column(Integer,default=100) #conduite de l'utilisateur
+    profile_completed = Column(Boolean, default=False) #si le profil est complété
     # Ajout d'un rôle au sein de l'équipe
     role = Column(String(50), nullable=False)  # Responsable, Adjoint, Secrétaire, Membres_simple
     # Relation many-to-many avec Reunion

@@ -19,6 +19,7 @@ from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from pydantic import parse_obj_as
 
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 app=FastAPI()
 SECRET_KEY = "supersecretkey"  # À protéger avec des variables d'environnement
@@ -56,18 +57,40 @@ conf = ConnectionConfig(
     USE_CREDENTIALS=True,  # Indique qu'on utilise les identifiants d'authentification
     VALIDATE_CERTS=True    # Valide le certificat SSL
 )
+# Ajouter un utilisateur
+@app.post("/users/",status_code=status.HTTP_201_CREATED)
+async def create_user(user:UserBase, db: db_dependency ):
+    try:
+        db_user = models.User(**user.dict())
+        db.add(db_user)
+        db.commit()
+        return {"message": "Utilisateur créé avec succès"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Erreur lors de la création de l'utilisateur : {str(e)}")
 # Route pour creer un compte
+
 @app.post("/register/")
 async def register_user(user: UserBase, db: Session = Depends(get_db)):
-    user_exists = db.query(User).filter(User.email == user.email).first()
-    if user_exists:
-        raise HTTPException(status_code=400, detail="Cet email est déjà utilisé.")
+    try:
+        # Vérifier si l'utilisateur existe déjà
+        user_exists = db.query(User).filter(User.email == user.email).first()
+        if user_exists:
+            raise HTTPException(status_code=400, detail="Cet email est déjà utilisé.")
 
-    new_user = models.User(**user.dict(exclude={"password"}))
-    new_user.set_password(user.password)  # Hash et enregistre le mot de passe
-    db.add(new_user)
-    db.commit()
-    return {"message": "Utilisateur enregistré avec succès."}
+        # Créer un nouvel utilisateur
+        new_user = models.User(**user.dict(exclude={"password"}))
+        new_user.set_password(user.password)  # Hash et enregistre le mot de passe
+           
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)  # Recharge les données après insertion
+
+        return {"message": "Utilisateur enregistré avec succès."}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 # Route pour connecter un utilisateur
@@ -126,18 +149,21 @@ async def get_all_reunion(db:db_dependency):
     reunions = db.query(models.Reunion).all()  # Récupère toutes les reunions
     return reunions  # Retourne la liste des reunions
 
-# Ajouter un utilisateur
-@app.post("/users/",status_code=status.HTTP_201_CREATED)
-async def create_user(user:UserBase, db: db_dependency ):
-    try:
-        db_user = models.User(**user.dict())
-        db.add(db_user)
-        db.commit()
-        return {"message": "Utilisateur créé avec succès"}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=400, detail=f"Erreur lors de la création de l'utilisateur : {str(e)}")
-        
+
+# Verification du profil 
+@app.get("/user/profile-status")
+def get_profile_status(current_user: User = Depends(get_current_user)):
+    return {"profile_completed": current_user.profile_completed}
+# mise a jour du profil
+@app.post("/user/complete-profile")
+def complete_profile(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.profile_completed:
+        raise HTTPException(status_code=400, detail="Profile already completed")
+    
+    current_user.profile_completed = True
+    db.commit()
+    return {"message": "Profile completed successfully"}
+     
 @app.post("/reunion/", status_code=status.HTTP_201_CREATED)
 async def create_reunion(reunion: ReunionBase, db: Session = Depends(get_db)):
     # Crée un nouvel objet Reunion à partir des données reçues

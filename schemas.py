@@ -20,6 +20,7 @@ class UserBase(BaseModel):
     is_admin: bool
     role :str
     conduite:int
+    profile_completed:bool
 
 class UserResponse(BaseModel):
     id: int
@@ -40,6 +41,7 @@ class UserResponse(BaseModel):
     is_admin: bool
     role:str
     conduite:int
+    profile_completed:bool
     
     class Config:
         orm_mode = True
@@ -81,6 +83,7 @@ class UserUpdate(BaseModel):
     is_admin: Optional[bool ] = None
     role:Optional[str] = None
     conduite:Optional[int]=None
+    profile_completed:Optional[bool]=None
     
     
 class EmailSchema(BaseModel):
