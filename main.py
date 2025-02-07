@@ -57,19 +57,7 @@ conf = ConnectionConfig(
     USE_CREDENTIALS=True,  # Indique qu'on utilise les identifiants d'authentification
     VALIDATE_CERTS=True    # Valide le certificat SSL
 )
-# Ajouter un utilisateur
-@app.post("/users/",status_code=status.HTTP_201_CREATED)
-async def create_user(user:UserBase, db: db_dependency ):
-    try:
-        db_user = models.User(**user.dict())
-        db.add(db_user)
-        db.commit()
-        return {"message": "Utilisateur créé avec succès"}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=400, detail=f"Erreur lors de la création de l'utilisateur : {str(e)}")
 # Route pour creer un compte
-
 @app.post("/register/")
 async def register_user(user: UserBase, db: Session = Depends(get_db)):
     try:
@@ -126,7 +114,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 @app.get("/profile")
 async def get_profile(current_user: models.User = Depends(get_current_user)):
     print(f"Utilisateur connecté : {current_user.email}")  # Log pour vérifier que l'utilisateur est récupéré
-    return {"email": current_user.email, "is_admin": current_user.is_admin}
+    return {"email": current_user.email,"prenom":current_user.prenom, "is_admin": current_user.is_admin,"conduite":current_user.conduite,"profile_completed":current_user.profile_completed}
 
 
     

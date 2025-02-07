@@ -40,7 +40,7 @@ class User(Base):
     conduite = Column(Integer,default=100) #conduite de l'utilisateur
     profile_completed = Column(Boolean, default=False) #si le profil est complété
     # Ajout d'un rôle au sein de l'équipe
-    role = Column(String(50), nullable=False)  # Responsable, Adjoint, Secrétaire, Membres_simple
+    role = Column(String(50), default='Membre')  # Responsable, Adjoint, Secrétaire, Membres_simple
     # Relation many-to-many avec Reunion
     reunion = relationship("Reunion",secondary=user_reunion, back_populates="users")
  # Clé étrangère pour l'équipe
