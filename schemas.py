@@ -17,10 +17,10 @@ class UserBase(BaseModel):
     nocturne :str
     implication :str
     password :str
-    is_admin: bool
-    role :str
-    conduite:int
-    profile_completed:bool
+    is_admin: bool=False
+    role :str="Membre"
+    conduite:int=100
+    profile_completed:bool=False
 
 class UserResponse(BaseModel):
     id: int
