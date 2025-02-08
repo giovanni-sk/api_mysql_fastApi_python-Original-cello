@@ -11,13 +11,14 @@ from models import Equipe
 from models import Staff
 from schemas import UserBase, UserResponse, ReunionBase, ReunionGet,UserUpdate,EmailSchema,EquipeBase,StaffBase,StaffResponse,LoginRequest
 from database import engine,SessionLocal,get_db
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session,joinedload
 from fastapi.middleware.cors import CORSMiddleware
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from pydantic import parse_obj_as
+
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -112,10 +113,17 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     
 # Endpoint pour récupérer les infos de l'utilisateur connecté
 @app.get("/profile")
-async def get_profile(current_user: models.User = Depends(get_current_user)):
-    print(f"Utilisateur connecté : {current_user.email}")  # Log pour vérifier que l'utilisateur est récupéré
-    return {current_user}
+async def get_profile(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    user = db.query(models.User).options(
+        joinedload(models.User.equipe),
+        joinedload(models.User.staff),
+        joinedload(models.User.reunion)  # Ajoute toutes les relations ici
+    ).filter(models.User.id == current_user.id).first()
 
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+
+    return {user}  # FastAPI convertira l'objet SQLAlchemy en JSON automatiquement
 
     
 @app.get("/admin/dashboard")

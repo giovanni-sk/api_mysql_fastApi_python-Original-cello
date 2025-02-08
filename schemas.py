@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 
 class UserBase(BaseModel):
+    id:int
     nom: str
     prenom: str 
     email: EmailStr
@@ -23,7 +24,7 @@ class UserBase(BaseModel):
     profile_completed: bool = False
     class Config:
         orm_mode = True
-        
+
 class UserResponse(BaseModel):
     id: int
     nom: str
@@ -67,6 +68,7 @@ class ReunionGet(ReunionBase):
     
  # Modèle Pydantic pour les mises à jour partielles
 class UserUpdate(BaseModel):
+    id: int
     nom: Optional[str] = None
     prenom: Optional[str] = None
     email: Optional[EmailStr] = None
