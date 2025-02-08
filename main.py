@@ -58,7 +58,7 @@ conf = ConnectionConfig(
     VALIDATE_CERTS=True    # Valide le certificat SSL
 )
 # Route pour creer un compte
-@app.post("/register/")
+@app.post("/register")
 async def register_user(user: UserBase, db: Session = Depends(get_db)):
     try:
         # Vérifier si l'utilisateur existe déjà
@@ -67,7 +67,7 @@ async def register_user(user: UserBase, db: Session = Depends(get_db)):
             raise HTTPException(status_code=400, detail="Cet email est déjà utilisé.")
 
         # Créer un nouvel utilisateur
-        new_user = models.User(**user.dict(exclude={"password"}))
+        new_user = models.User(**user.dict(exclude={"password"},exclude_unset=True))
         new_user.set_password(user.password)  # Hash et enregistre le mot de passe
            
         db.add(new_user)
@@ -88,7 +88,7 @@ def create_access_token(data: dict):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-@app.post("/login/")
+@app.post("/login")
 async def login(request:LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == request.email).first()
     if not user or not user.verify_password(request.password):
@@ -114,25 +114,25 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 @app.get("/profile")
 async def get_profile(current_user: models.User = Depends(get_current_user)):
     print(f"Utilisateur connecté : {current_user.email}")  # Log pour vérifier que l'utilisateur est récupéré
-    return {"email": current_user.email,"prenom":current_user.prenom, "is_admin": current_user.is_admin,"conduite":current_user.conduite,"profile_completed":current_user.profile_completed}
+    return {current_user}
 
 
     
-@app.get("/admin/dashboard/")
+@app.get("/admin/dashboard")
 async def admin_dashboard(current_user: User = Depends(get_current_user)):
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Accès réservé aux administrateurs.")
     return {"message": "Bienvenue sur le tableau de bord admin."}
 
 # Retourner tous les utilisateurs
-@app.get("/users/", response_model=List[UserResponse], status_code=status.HTTP_200_OK)
+@app.get("/users", response_model=List[UserResponse], status_code=status.HTTP_200_OK)
 async def get_users(db: db_dependency):
     users = db.query(models.User).all()  # Récupérer tous les utilisateurs
     return users  # Pydantic avec orm_mode gère la conversion
 
 
 # Recuperer toutes les reunions enregistrée
-@app.get("/reunion/",response_model=List[ReunionGet], status_code=status.HTTP_200_OK)
+@app.get("/reunion",response_model=List[ReunionGet], status_code=status.HTTP_200_OK)
 async def get_all_reunion(db:db_dependency):
     reunions = db.query(models.Reunion).all()  # Récupère toutes les reunions
     return reunions  # Retourne la liste des reunions
@@ -142,17 +142,26 @@ async def get_all_reunion(db:db_dependency):
 @app.get("/user/profile-status")
 def get_profile_status(current_user: User = Depends(get_current_user)):
     return {"profile_completed": current_user.profile_completed}
-# mise a jour du profil
-@app.post("/user/complete-profile")
-def complete_profile(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    if current_user.profile_completed:
-        raise HTTPException(status_code=400, detail="Profile already completed")
     
-    current_user.profile_completed = True
+# mise a jour du profil
+@app.put("/users/{user_id}/complete-profile/")
+async def complete_profile(user_id: int, user_update: UserUpdate, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé.")
+
+    for key, value in user_update.dict(exclude_unset=True).items():
+        setattr(user, key, value)
+
+    user.profile_completed = True  # Marque le profil comme complété
     db.commit()
-    return {"message": "Profile completed successfully"}
+    db.refresh(user)
+
+    return {"message": "Profil complété avec succès."}
+
      
-@app.post("/reunion/", status_code=status.HTTP_201_CREATED)
+@app.post("/reunion", status_code=status.HTTP_201_CREATED)
 async def create_reunion(reunion: ReunionBase, db: Session = Depends(get_db)):
     # Crée un nouvel objet Reunion à partir des données reçues
     db_reunion = Reunion(**reunion.dict())

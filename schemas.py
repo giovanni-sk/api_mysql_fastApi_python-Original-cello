@@ -3,25 +3,27 @@ from typing import Optional, List
 
 class UserBase(BaseModel):
     nom: str
-    prenom:str
-    email :str
-    adresse :str
-    dob:str
-    nationalite:str
-    matrimonial:str
-    sexe:str
-    agence :str
-    motivation :str
-    talent :str
-    occupation :str
-    nocturne :str
-    implication :str
-    password :str
-    is_admin: bool=False
-    role :str="Membre"
-    conduite:int=100
-    profile_completed:bool=False
-
+    prenom: str 
+    email: EmailStr
+    adresse: Optional[str] = None
+    dob: Optional[str] = None
+    nationalite: Optional[str] = None
+    matrimonial: Optional[str] = None
+    sexe: Optional[str] = None
+    agence: Optional[str] = None
+    motivation: Optional[str] = None
+    talent: Optional[str] = None
+    occupation: Optional[str] = None
+    nocturne: Optional[str] = None
+    implication: Optional[str] = None
+    password: str
+    is_admin: bool = False
+    role: str = "Membre"
+    conduite: int = 100
+    profile_completed: bool = False
+    class Config:
+        orm_mode = True
+        
 class UserResponse(BaseModel):
     id: int
     nom: str
