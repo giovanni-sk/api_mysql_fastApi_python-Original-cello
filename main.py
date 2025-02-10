@@ -3,7 +3,7 @@ from fastapi_mail import FastMail, MessageSchema,ConnectionConfig
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from pydantic import  EmailStr,BaseModel
-from typing import Annotated,List, Optional
+from typing import Annotated,List, Optional,Dict
 import models
 from models import Reunion
 from models import User
@@ -375,5 +375,57 @@ async def get_staff(user_id: int, db: Session = Depends(get_db)):
     staffs = db.query(Staff).filter(Staff.user_id == user_id).all()
 
     return staffs
+# Moins sur les conduites
+class PointRequest(BaseModel):
+    points: int  # Nombre de points à enlever
 
+@app.post("/user/{user_id}/moins", response_model=Dict[str, int], status_code=200)
+async def decrement_conduite(user_id: int, request: PointRequest, db: Session = Depends(get_db)):
+    # Vérifier si l'utilisateur existe
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
 
+    # Vérifier que le nombre de points demandé est valide
+    if request.points <= 0:
+        raise HTTPException(status_code=400, detail="Le nombre de points à enlever doit être supérieur à 0")
+
+    # Vérifier que l'utilisateur a suffisamment de points
+    if user.conduite < request.points:
+        raise HTTPException(status_code=400, detail="Nombre de points insuffisant")
+
+    # Décrémentation
+    old_conduite = user.conduite
+    user.conduite -= request.points
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "user_id": user.id,
+        "old_conduite": old_conduite,
+        "new_conduite": user.conduite,
+        "points_removed": request.points
+    }
+    
+    
+@app.post("/user/{user_id}/plus",response_model=Dict[str,int],status_code=200)
+async def increment_conduite(user_id:int,request:PointRequest,db:Session = Depends(get_db)):
+    # Vérifier si l'utilisateur existe
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+ 
+    # Incrémentation
+    old_conduite = user.conduite
+    user.conduite += request.points
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "user_id": user.id,
+        "old_conduite": old_conduite,
+        "new_conduite": user.conduite,
+        "points_ajouter": request.points
+    }
+        
+    
