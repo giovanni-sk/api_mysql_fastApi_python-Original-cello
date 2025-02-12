@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey,Table
+from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey,Table,DateTime, func
 from sqlalchemy.orm import relationship
 from database import Base
 from passlib.context import CryptContext
@@ -48,6 +48,8 @@ class User(Base):
     equipe = relationship("Equipe", back_populates="users")
 # Relation avec Staff
     staff = relationship("Staff", back_populates="users")
+    # Relation One-to-Many avec PointsHistory
+    points_history = relationship("PointsHistory", back_populates="user")
 
  
 
@@ -94,3 +96,16 @@ class Staff(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     # Relation avec Membre
     users = relationship("User", back_populates="staff")
+
+# Table PointsHistory
+class PointsHistory(Base):
+    __tablename__ = "points_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    points = Column(Integer, nullable=False)  # +X ou -X
+    motif = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=func.now())
+
+    # Relation avec User
+    user = relationship("User", back_populates="points_history")

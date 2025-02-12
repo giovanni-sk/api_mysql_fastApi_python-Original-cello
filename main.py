@@ -9,7 +9,8 @@ from models import Reunion
 from models import User
 from models import Equipe
 from models import Staff
-from schemas import UserBase, UserResponse, ReunionBase, ReunionGet,UserUpdate,EmailSchema,EquipeBase,StaffBase,StaffResponse,LoginRequest
+from models import PointsHistory
+from schemas import UserBase, UserResponse, ReunionBase, ReunionGet,UserUpdate,EmailSchema,EquipeBase,StaffBase,StaffResponse,LoginRequest,PointRequest
 from database import engine,SessionLocal,get_db
 from sqlalchemy.orm import Session,joinedload
 from fastapi.middleware.cors import CORSMiddleware
@@ -375,28 +376,31 @@ async def get_staff(user_id: int, db: Session = Depends(get_db)):
     staffs = db.query(Staff).filter(Staff.user_id == user_id).all()
 
     return staffs
-# Moins sur les conduites
-class PointRequest(BaseModel):
-    points: int  # Nombre de points à enlever
 
-@app.post("/user/{user_id}/moins", response_model=Dict[str, int], status_code=200)
+
+@app.post("/user/{user_id}/moins", response_model=dict, status_code=200)
 async def decrement_conduite(user_id: int, request: PointRequest, db: Session = Depends(get_db)):
-    # Vérifier si l'utilisateur existe
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
 
-    # Vérifier que le nombre de points demandé est valide
     if request.points <= 0:
         raise HTTPException(status_code=400, detail="Le nombre de points à enlever doit être supérieur à 0")
 
-    # Vérifier que l'utilisateur a suffisamment de points
     if user.conduite < request.points:
         raise HTTPException(status_code=400, detail="Nombre de points insuffisant")
 
-    # Décrémentation
     old_conduite = user.conduite
     user.conduite -= request.points
+
+    # Enregistrer l'historique
+    history_entry = PointsHistory(
+        user_id=user.id,
+        points=-request.points,
+        motif=request.motif
+    )
+    db.add(history_entry)
+
     db.commit()
     db.refresh(user)
 
@@ -404,20 +408,27 @@ async def decrement_conduite(user_id: int, request: PointRequest, db: Session = 
         "user_id": user.id,
         "old_conduite": old_conduite,
         "new_conduite": user.conduite,
-        "points_removed": request.points
+        "points_removed": request.points,
+        "motif": request.motif
     }
-    
-    
-@app.post("/user/{user_id}/plus",response_model=Dict[str,int],status_code=200)
-async def increment_conduite(user_id:int,request:PointRequest,db:Session = Depends(get_db)):
-    # Vérifier si l'utilisateur existe
+
+@app.post("/user/{user_id}/plus", response_model=dict, status_code=200)
+async def increment_conduite(user_id: int, request: PointRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
- 
-    # Incrémentation
+
     old_conduite = user.conduite
     user.conduite += request.points
+
+    # Enregistrer l'historique
+    history_entry = PointsHistory(
+        user_id=user.id,
+        points=request.points,
+        motif=request.motif
+    )
+    db.add(history_entry)
+
     db.commit()
     db.refresh(user)
 
@@ -425,7 +436,20 @@ async def increment_conduite(user_id:int,request:PointRequest,db:Session = Depen
         "user_id": user.id,
         "old_conduite": old_conduite,
         "new_conduite": user.conduite,
-        "points_ajouter": request.points
+        "points_added": request.points,
+        "motif": request.motif
     }
-        
+# Recuperer l'historique de point d'un utilisateur 
+@app.get("/user/{user_id}/history",response_model=List[PointRequest],status_code=200) 
+async def get_history(user_id:int,db:Session=Depends(get_db)):
+    # verifie si l'utilisateur existe
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+          raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+      
+# recupere l'historique de point de l'utilisateur
+    historiques = db.query(PointsHistory).filter(PointsHistory.user_id==user_id).all()
+    
+    return historiques
+
     

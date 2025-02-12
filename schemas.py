@@ -2,7 +2,6 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 
 class UserBase(BaseModel):
-    id:int
     nom: str
     prenom: str 
     email: EmailStr
@@ -106,5 +105,9 @@ class StaffBase(BaseModel):
     adresse:str
     
 class StaffResponse(StaffBase):
-    id: int
+    id: int   
        
+# Moins sur les conduites
+class PointRequest(BaseModel):
+    points: int  
+    motif: str
