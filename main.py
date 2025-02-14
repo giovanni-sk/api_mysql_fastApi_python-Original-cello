@@ -364,6 +364,26 @@ async def create_staff(user_id: int, staff: StaffBase, db: Session = Depends(get
         db.rollback()
         raise HTTPException(status_code=400, detail=f"Erreur lors de l'ajout du staff : {str(e)}")
     
+# Supprimer un staff pour un user specifique
+
+@app.delete("/staff/{user_id}/{staff_id}")
+async def delete_staff(user_id: int, staff_id: int, db: Session = Depends(get_db)):
+    # Vérifie si l'utilisateur existe
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+
+    # Vérifie si le staff existe
+    staff = db.query(Staff).filter(Staff.user_id == user_id, Staff.id == staff_id).first()
+    if not staff:
+        raise HTTPException(status_code=404, detail="Staff non trouvé")
+    
+    # Suppression du staff
+    db.delete(staff)
+    db.commit()
+
+    return {"message": "Staff supprimé avec succès"}
+
 # Recuperer les staffs d'un utilisateur
 @app.get("/user/{user_id}/staff", response_model=List[StaffResponse], status_code=200)
 async def get_staff(user_id: int, db: Session = Depends(get_db)):
