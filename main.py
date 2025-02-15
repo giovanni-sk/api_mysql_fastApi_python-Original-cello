@@ -36,7 +36,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["http://localhost:5173"],
     allow_headers=["*"],
 )
 
@@ -245,10 +245,8 @@ async def delete_user(id:int, db:db_dependency):
     db.commit()
     
  # Mise à jour de l'utilisateur 
-
-
 @app.put("/user/{id}", status_code=status.HTTP_200_OK)
-async def update_user(id: int, user: UserBase, db: db_dependency):
+async def update_user(id: int, user: UserUpdate, db: db_dependency):
     db_user = db.query(models.User).filter(models.User.id == id).first()  # Récupérer l'utilisateur existant
     if db_user is None:
         raise HTTPException(status_code=404, detail='Utilisateur introuvable')
@@ -262,7 +260,7 @@ async def update_user(id: int, user: UserBase, db: db_dependency):
 
 
 # Route PATCH pour mettre à jour partiellement un utilisateur
-@app.patch("/user/{id}", response_model=UserBase, status_code=status.HTTP_200_OK)
+@app.patch("/user/{id}", response_model=UserUpdate, status_code=status.HTTP_200_OK)
 async def update_user_partial(id: int, user_update: UserUpdate, db: db_dependency):
     db_user = db.query(models.User).filter(models.User.id == id).first()  # Récupérer l'utilisateur existant
     if db_user is None:
@@ -366,6 +364,11 @@ async def create_staff(user_id: int, staff: StaffBase, db: Session = Depends(get
     
 # Supprimer un staff pour un user specifique
 
+from fastapi import FastAPI, HTTPException, Depends
+from sqlalchemy.orm import Session
+# Assumes you have User and Staff models defined
+# and a get_db dependency for database session
+
 @app.delete("/staff/{user_id}/{staff_id}")
 async def delete_staff(user_id: int, staff_id: int, db: Session = Depends(get_db)):
     # Vérifie si l'utilisateur existe
@@ -379,10 +382,15 @@ async def delete_staff(user_id: int, staff_id: int, db: Session = Depends(get_db
         raise HTTPException(status_code=404, detail="Staff non trouvé")
     
     # Suppression du staff
-    db.delete(staff)
-    db.commit()
+    try:
+        db.delete(staff)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la suppression du staff: {str(e)}")
 
     return {"message": "Staff supprimé avec succès"}
+
 
 # Recuperer les staffs d'un utilisateur
 @app.get("/user/{user_id}/staff", response_model=List[StaffResponse], status_code=200)
