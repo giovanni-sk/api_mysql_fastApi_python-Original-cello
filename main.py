@@ -31,12 +31,11 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/")
 origins = [
     "*"
 ]
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["http://localhost:5173"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -97,7 +96,7 @@ async def login(request:LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect.")
     
     access_token = create_access_token(data={"sub": user.email, "is_admin": user.is_admin})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token,"is_admin":user.is_admin,   "token_type": "bearer"}
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     try:
@@ -145,6 +144,7 @@ async def get_users(db: db_dependency):
 async def get_all_reunion(db:db_dependency):
     reunions = db.query(models.Reunion).all()  # Récupère toutes les reunions
     return reunions  # Retourne la liste des reunions
+
 
 
 # Verification du profil 
