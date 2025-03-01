@@ -67,7 +67,6 @@ class ReunionGet(ReunionBase):
     
  # Modèle Pydantic pour les mises à jour partielles
 class UserUpdate(BaseModel):
-    id: int
     nom: Optional[str] = None
     prenom: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -87,7 +86,8 @@ class UserUpdate(BaseModel):
     role:Optional[str] = None
     conduite:Optional[int]=None
     profile_completed:Optional[bool]=None
-    
+
+
     
 class EmailSchema(BaseModel):
     email: List[EmailStr]   

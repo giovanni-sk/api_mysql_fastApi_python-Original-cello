@@ -75,7 +75,6 @@ class Reunion(Base):
     users = relationship("User",secondary=user_reunion, back_populates="reunion")
 
 # Table Equipe
-
 class Equipe(Base):
     __tablename__ = 'equipe'
 
