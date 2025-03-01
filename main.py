@@ -9,8 +9,9 @@ from models import Reunion
 from models import User
 from models import Equipe
 from models import Staff
+from models import Cours
 from models import PointsHistory
-from schemas import UserBase, UserResponse, ReunionBase, ReunionGet,UserUpdate,EmailSchema,EquipeBase,StaffBase,StaffResponse,LoginRequest,PointRequest
+from schemas import UserBase, UserResponse, ReunionBase, ReunionGet,UserUpdate,EmailSchema,EquipeBase,StaffBase,StaffResponse,LoginRequest,PointRequest,CoursBase
 from database import engine,SessionLocal,get_db
 from sqlalchemy.orm import Session,joinedload
 from fastapi.middleware.cors import CORSMiddleware
@@ -36,7 +37,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["http://localhost:5173"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -186,8 +187,26 @@ async def create_reunion(reunion: ReunionBase, db: Session = Depends(get_db)):
         db.rollback()  # En cas d'erreur, annule la transaction
         raise HTTPException(status_code=400, detail=f"Erreur lors de l'ajout de la réunion : {str(e)}")      
         
-     
+
+# Creer un cours
+@app.post("/cours",status_code=200)
+async def create_cours(cours:CoursBase, db:Session=Depends(get_db)):
     
+    # creation du cours
+    cours_new= Cours(**cours.dict())
+    
+    try:
+        # Ajoute le cours à la base de données
+        db.add(cours_new)
+        db.commit() #commit les changements
+        db.refresh(cours_new) # Rafraîchit l'instance pour obtenir l'id généré ou d'autres champs après le commit
+        
+        return cours_new.dict() # renvoie le cours créé, avec son id généré
+    except Exception as e:
+        db.rollback() # annule la transaction
+        raise HTTPException(status_code=400, detail=f"Erreur lors de la création du cours : {str(e)}")
+
+# Modifier un cours
     
 
 
@@ -243,6 +262,7 @@ async def delete_user(id:int, db:db_dependency):
         raise HTTPException(status_code=404, detail='Utilisateur introuvable')
     db.delete(db_user)
     db.commit()
+    
     
  # Mise à jour de l'utilisateur 
 @app.put("/user/{id}", status_code=status.HTTP_200_OK)
@@ -364,8 +384,7 @@ async def create_staff(user_id: int, staff: StaffBase, db: Session = Depends(get
     
 # Supprimer un staff pour un user specifique
 
-from fastapi import FastAPI, HTTPException, Depends
-from sqlalchemy.orm import Session
+
 # Assumes you have User and Staff models defined
 # and a get_db dependency for database session
 

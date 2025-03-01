@@ -109,3 +109,14 @@ class PointsHistory(Base):
 
     # Relation avec User
     user = relationship("User", back_populates="points_history")
+    
+    
+# Table Cours
+class Cours(Base):
+    __tablename__="cours"
+    
+    id= Column(Integer, primary_key=True, index=True)
+    titre=Column(Text)
+    Contenu=Column(Text)
+    created_at=Column(DateTime,default=func.now())
+    updated_at=Column(DateTime,default=func.now())

@@ -111,3 +111,13 @@ class StaffResponse(StaffBase):
 class PointRequest(BaseModel):
     points: int  
     motif: str
+    
+    
+# Schemas pour les cours 
+class CoursBase(BaseModel):
+    id:int
+    titre:str
+    contenu:str
+    
+    class Config:
+        orm_mode = True
