@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\giovanni.sokenou\Documents\api_mysql_fastApi_python\.venv
+set VIRTUAL_ENV=C:\Users\MR GICS\Documents\Celloevents_perso_original\api_mysql_fastApi_python-Original-cello\.venv
 
 if not defined PROMPT set PROMPT=$P$G
 

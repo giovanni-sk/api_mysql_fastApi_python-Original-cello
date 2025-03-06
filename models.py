@@ -84,6 +84,7 @@ class Equipe(Base):
 # Relation avec les membres (users)
     users = relationship("User", back_populates="equipe")
 
+# Table Staff
 class Staff(Base):
     __tablename__ ='staff'
     id = Column(Integer, primary_key=True, index=True)

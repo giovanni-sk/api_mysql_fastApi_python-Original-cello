@@ -189,7 +189,7 @@ async def create_reunion(reunion: ReunionBase, db: Session = Depends(get_db)):
         
 
 # Creer un cours
-@app.post("/cours",status_code=200)
+@app.post("/cours",status_code=status.HTTP_201_CREATED)
 async def create_cours(cours:CoursBase, db:Session=Depends(get_db)):
     
     # creation du cours
@@ -201,7 +201,7 @@ async def create_cours(cours:CoursBase, db:Session=Depends(get_db)):
         db.commit() #commit les changements
         db.refresh(cours_new) # Rafraîchit l'instance pour obtenir l'id généré ou d'autres champs après le commit
         
-        return cours_new.dict() # renvoie le cours créé, avec son id généré
+        return cours_new # renvoie le cours créé, avec son id généré
     except Exception as e:
         db.rollback() # annule la transaction
         raise HTTPException(status_code=400, detail=f"Erreur lors de la création du cours : {str(e)}")
