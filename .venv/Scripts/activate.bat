@@ -8,7 +8,11 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
+<<<<<<< HEAD
 set "VIRTUAL_ENV=C:\Users\giovanni.sokenou\Downloads\Documents\Personnel_2025\api_mysql_fastApi_python-master\.venv"
+=======
+set VIRTUAL_ENV=C:\Users\MR GICS\Documents\Celloevents_perso_original\api_mysql_fastApi_python-Original-cello\.venv
+>>>>>>> 12d22e1ec5a2bf1025e92e30d3922de36f304750
 
 if not defined PROMPT set PROMPT=$P$G
 

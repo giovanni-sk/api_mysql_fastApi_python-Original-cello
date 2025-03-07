@@ -65,7 +65,7 @@ class ReunionGet(ReunionBase):
     id:int
    
     
- # Modèle Pydantic pour les mises à jour partielles
+# Modèle Pydantic pour les mises à jour partielles
 class UserUpdate(BaseModel):
     nom: Optional[str] = None
     prenom: Optional[str] = None
@@ -115,9 +115,11 @@ class PointRequest(BaseModel):
     
 # Schemas pour les cours 
 class CoursBase(BaseModel):
-    id:int
     titre:str
-    contenu:str
+    Contenu:str
     
     class Config:
         orm_mode = True
+        
+class CoursResponse(CoursBase):
+    id:int
