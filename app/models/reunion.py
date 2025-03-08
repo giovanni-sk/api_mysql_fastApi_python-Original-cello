@@ -14,4 +14,5 @@ class Reunion(Base):
     lieu = Column(String(255))
     heure = Column(String(100))
     color = Column(String(100))
+    # Relation many-to-many avec User
     users = relationship("User", secondary=user_reunion, back_populates="reunion")
