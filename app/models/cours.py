@@ -7,6 +7,6 @@ class Cours(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     titre = Column(Text)
-    Contenu = Column(Text)
+    contenu = Column(Text)
     created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now())
+    # updated_at = Column(DateTime, onupdate=func.now())
