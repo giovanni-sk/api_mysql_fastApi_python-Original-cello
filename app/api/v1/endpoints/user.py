@@ -143,3 +143,26 @@ async def get_profile(current_user: User = Depends(get_current_user), db: Sessio
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
 
     return {user}  # FastAPI convertira l'objet SQLAlchemy en JSON automatiquement
+
+
+# Verification du profil 
+@router.get("/user/profile-status")
+def get_profile_status(current_user: User = Depends(get_current_user)):
+    return {"profile_completed": current_user.profile_completed}
+    
+# mise a jour du profil
+@router.put("/users/{user_id}/complete-profile/")
+async def complete_profile(user_id: int, user_update: UserUpdate, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé.")
+
+    for key, value in user_update.dict(exclude_unset=True).items():
+        setattr(user, key, value)
+
+    user.profile_completed = True  # Marque le profil comme complété
+    db.commit()
+    db.refresh(user)
+
+    return {"message": "Profil complété avec succès."}
