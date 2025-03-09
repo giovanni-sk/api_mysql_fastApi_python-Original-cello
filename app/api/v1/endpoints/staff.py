@@ -58,12 +58,21 @@ async def update_staff(staff_id: int, staff: StaffUpdate, db: Session = Depends(
     return db_staff
 
 # Route pour supprimer un membre du staff
-@router.delete("/staff/{staff_id}")
-async def delete_staff(staff_id: int, db: Session = Depends(get_db)):
-    db_staff = db.query(Staff).filter(Staff.id == staff_id).first()
-    if db_staff is None:
-        raise HTTPException(status_code=404, detail="Membre du staff non trouvé")
+# Route pour supprimer un membre du staff d'un utilisateur spécifique
+@router.delete("/user/{user_id}/staff/{staff_id}")
+async def delete_staff(user_id: int, staff_id: int, db: Session = Depends(get_db)):
+    # Vérifie si l'utilisateur existe
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
 
+    # Vérifie si le membre du staff existe et appartient à l'utilisateur
+    db_staff = db.query(Staff).filter(Staff.id == staff_id, Staff.user_id == user_id).first()
+    if db_staff is None:
+        raise HTTPException(status_code=404, detail="Membre du staff non trouvé ou n'appartient pas à cet utilisateur")
+
+    # Supprime le membre du staff
     db.delete(db_staff)
     db.commit()
+    
     return {"message": "Membre du staff supprimé avec succès"}
