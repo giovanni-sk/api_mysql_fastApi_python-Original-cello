@@ -68,6 +68,7 @@ async def register_user(user: UserBase, db: Session = Depends(get_db)):
         if user_exists:
             raise HTTPException(status_code=400, detail="Cet email est déjà utilisé.")
 
+
         # Créer un nouvel utilisateur
         new_user = models.User(**user.dict(exclude={"password"},exclude_unset=True))
         new_user.set_password(user.password)  # Hash et enregistre le mot de passe

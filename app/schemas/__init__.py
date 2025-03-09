@@ -3,6 +3,6 @@ from .reunion import ReunionBase, ReunionGet
 from .staff import StaffBase, StaffResponse
 from .cours import CoursBase, CoursResponse
 from .equipe import EquipeBase
-from .points import PointsHistoryBase,PointsHistory,PointsHistoryCreate
+from .points import PointsHistoryResponse,PointRequest
 from .email import EmailSchema
 from .login import LoginRequest

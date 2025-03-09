@@ -2,7 +2,7 @@ from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from app.db.session import Base
 from passlib.context import CryptContext
-from app.models.base import user_reunion  # Importe la table d'association
+from app.models.base import user_reunion  
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -33,8 +33,9 @@ class User(Base):
     equipe = relationship("Equipe", back_populates="users")
     staff = relationship("Staff", back_populates="users")
     points_history = relationship("PointsHistory", back_populates="user")
-# Relation many-to-many avec Reunion
+    # Relation many-to-many avec Reunion
     reunion = relationship("Reunion", secondary=user_reunion, back_populates="users")
+    
     def verify_password(self, password: str) -> bool:
         return pwd_context.verify(password, self.password_hash)
 
