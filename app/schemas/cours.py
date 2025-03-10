@@ -1,7 +1,8 @@
-from pydantic import BaseModel
-from pydantic import ConfigDict
-from typing import Optional
+from pydantic import BaseModel,ConfigDict
+from typing import Optional,List
 from datetime import datetime
+
+from app.schemas.chapitre import ChapitreResponse
 
 class CoursBase(BaseModel):
     titre: str
@@ -14,9 +15,8 @@ class CoursUpdate(BaseModel):
     titre: Optional[str] = None
     contenu: Optional[str] = None
 
-class CoursResponse(CoursBase):
+class CoursResponse(CoursCreate):
     id: int
-    created_at: datetime
-    # updated_at: datetime
+    chapitres: List["ChapitreResponse"] = []
 
     model_config = ConfigDict(from_attributes=True)

@@ -25,3 +25,7 @@ app.include_router(points.router, prefix="/api/v1", tags=["points"])
 async def startup():
     # Créer les tables de la base de données
     Base.metadata.create_all(bind=engine)
+    
+@app.get("/")
+def read_root():
+    return {"message": "API is running successfuly!"}
