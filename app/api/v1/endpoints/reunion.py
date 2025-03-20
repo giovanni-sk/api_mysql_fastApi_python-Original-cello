@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from app.schemas.reunion import ReunionBase,  ReunionGet
+from app.schemas.reunion import ReunionBase
 from app.models.reunion import Reunion
 from app.db.session import get_db
 
@@ -34,7 +34,7 @@ async def get_all_reunions(db: Session = Depends(get_db)):
 # Route pour récupérer une réunion par ID
 @router.get("/reunion/{id}", response_model=ReunionBase)
 async def get_reunion_by_id(id: int, db: Session = Depends(get_db)):
-   try:
+   try: 
         reunion = db.query(Reunion).filter(Reunion.id == id).first()
         if reunion is None:
             raise HTTPException(status_code=404, detail="Réunion non trouvée")
@@ -50,7 +50,7 @@ async def update_reunion(id: int, reunion: ReunionBase, db: Session = Depends(ge
         db_reunion = db.query(Reunion).filter(Reunion.id == id).first()
         if db_reunion is None:
             raise HTTPException(status_code=404, detail="Réunion non trouvée")
-
+        
         for key, value in reunion.dict(exclude_unset=True).items():
             setattr(db_reunion, key, value)
 
@@ -59,7 +59,6 @@ async def update_reunion(id: int, reunion: ReunionBase, db: Session = Depends(ge
         return db_reunion
    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 # Route pour supprimer une réunion
 @router.delete("/reunion/{id}")
