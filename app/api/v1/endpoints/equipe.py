@@ -34,7 +34,7 @@ async def read_all_equipes(db: Session = Depends(get_db)):
 
 # Mettre à jour une équipe
 @router.put("/equipe/{id}", response_model=EquipeBase)
-async def update_equipe(id: int, equipe: EquipeBase, db: Session = Depends(get_db)):
+async def update_equipe(id: int, equipe: EquipeCreate, db: Session = Depends(get_db)):
     db_equipe = db.query(Equipe).filter(Equipe.id == id).first()
     if not db_equipe:
         raise HTTPException(status_code=404, detail="Équipe non trouvée")
@@ -105,6 +105,7 @@ async def remove_user_from_equipe(id: int, user_id: int, db: Session = Depends(g
     user.equipe_id = None
     db.commit()
     return {"message": "Utilisateur retiré de l'équipe avec succès"}
+
 
 # Récupérer tous les utilisateurs disponibles (non assignés à une équipe)
 @router.get("/users/available", response_model=List[UserResponse])
