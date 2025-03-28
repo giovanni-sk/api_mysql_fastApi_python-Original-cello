@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import date
+from enum import Enum
 
 class ReunionBase(BaseModel):
     titre: str = Field(..., max_length=100)
@@ -73,3 +74,30 @@ class ReunionUpdate(BaseModel):
     model_config = {
         "from_attributes": True
     }
+    
+    
+    
+    
+    
+    
+    
+
+class StatutPresence(str, Enum):
+    PRESENT = "present(e)"
+    ABSENT = "absent(e)"
+    PERMISSIONNAIRE = "permissionnaire"
+
+class PresenceUpdate(BaseModel):
+    user_id: int
+    statut: StatutPresence
+    commentaire: str = "Aucun motif pour son absence"
+
+class PresenceUpdateRequest(BaseModel):
+    presences: List[PresenceUpdate]
+
+class PresenceResponse(BaseModel):
+    id: int
+    nom: str
+    prenom: str
+    statut: StatutPresence
+    commentaire: str
